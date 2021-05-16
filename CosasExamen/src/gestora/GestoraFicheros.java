@@ -28,7 +28,17 @@ public class GestoraFicheros{
 		Persona p3= new Persona("gey",52);
 		List<String> lista=null;
 		try {
- 			anhiadirObjetoAFicheroBinario(p,"hola.dat", true);
+ 			anhiadirObjetoAFicheroTexto(p,"hola.txt", true);
+ 			anhiadirObjetoAFicheroTexto(p3,"hola.txt", true);
+ 			anhiadirObjetoAFicheroTexto(p2,"hola.txt", true);
+			eliminarObjetoFicheroTexto(p, "hola.txt");
+			p2.setNombre("avocado");
+			actualizarObjetoFicheroTexto(p2, "hola.txt");
+			anhiadirObjetoAFicheroTexto(p,"hola.txt", true);
+			lista = convertirContenidoFicheroTextoAList("hola.txt");
+			lista.forEach(x->System.out.println(x));
+			System.out.println("AHORA BINARIO \n");
+			anhiadirObjetoAFicheroBinario(p,"hola.dat", true);
 			anhiadirObjetoAFicheroBinario(p2,"hola.dat", true);
 			anhiadirObjetoAFicheroBinario(p3,"hola.dat", true);
 			eliminarPersonaEnFicheroBinario("hola.dat",p);
@@ -36,6 +46,7 @@ public class GestoraFicheros{
 			actualizarPersonaEnFicheroBinario("hola.dat",p2);
 			anhiadirObjetoAFicheroBinario(p,"hola.dat", true);
 			lista = convertirContenidoFicheroBinarioALista("hola.dat");
+			lista.forEach(x->System.out.println(x));
 		} catch (ExcepcionGestionFichero e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -46,7 +57,7 @@ public class GestoraFicheros{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		lista.forEach(x->System.out.println(x));
+		
 	}
 
 	/**
@@ -71,6 +82,7 @@ public class GestoraFicheros{
 				fw=new FileWriter(path,true);//abrimos los flujos instanciando los objetos 
 				bw=new BufferedWriter(fw);
 				bw.write(p.toString());
+				bw.newLine();
 				anhiadido=true;//si no ha saltado ninguna excepción y por lo tanto el flujo del programa no se ha visto interrumpido, el objeto se habrá anhiadido adecuadamente.
 			} catch (IOException e){
 				throw new ExcepcionEscritura();
@@ -165,7 +177,7 @@ public class GestoraFicheros{
 		File fileO=null;
 		File fileF=null;
 		Persona personaAux=null;
-		String pathAuxiliar=path+"auxiliar";
+		String pathAuxiliar="auxiliar"+path;
 		boolean eliminado=false;
 		try {
 			fileO=new File(path);
@@ -223,7 +235,7 @@ public class GestoraFicheros{
 		FileReader fr=null;//declaramos los objetos de las clases necesarias para poder cerrar los flujos en el finally
 		BufferedReader br=null;
 		String lectura="";
-		String pathAuxiliar=path+"auxiliar";
+		String pathAuxiliar="auxiliar"+path;
 		Persona personaAux=null;
 		File fileO=null;
 		File fileF=null;
@@ -233,15 +245,16 @@ public class GestoraFicheros{
 			fr=new FileReader(fileO);
 			br=new BufferedReader(fr);
 			fileF=new File(pathAuxiliar);
+			fileF.createNewFile();
 			while((lectura=br.readLine())!=null){
-				if(lectura.getClass().getSimpleName().equals("Persona")){
+				if(lectura.split(",")[0].equals("Persona")){
 					 personaAux=construirObjeto(lectura);
 					if(!personaAux.equals(persona)){
 						anhiadirObjetoAFicheroTexto(personaAux, pathAuxiliar,false);
 					}
 				}
-				eliminado=true;//si no ha saltado ninguna excepción y por lo tanto el flujo del programa no se ha visto interrumpido, el objeto se habrá eliminado adecuadamente.
 			}
+		eliminado=true;//si no ha saltado ninguna excepción y por lo tanto el flujo del programa no se ha visto interrumpido, el objeto se habrá eliminado adecuadamente.
 		}catch(IOException e){
 			throw new ExcepcionLectura();
 		}finally{//cerramos los flujos preguntando previamente si son o no nulos
@@ -380,8 +393,8 @@ public class GestoraFicheros{
 						throw new ExcepcionGestionFichero();
 					}
 				}
-				fileF.renameTo(fileO);
 				fileO.delete();
+				fileF.renameTo(fileO);	
 		}
 		return eliminado;
 	}
@@ -400,13 +413,15 @@ public class GestoraFicheros{
 	 * @throws ExcepcionLectura 
 	 * */
 	public static boolean comprobarSiFicheroExisteTexto(Persona p,String path) throws ExcepcionGestionFichero, ExcepcionLectura{//el objeto se puede sustituir por cualquiera
+		File file=null;
 		FileReader fr=null;//declaramos los objetos de las clases necesarias para poder cerrar los flujos en el finally
 		BufferedReader br=null;
 		boolean existe=false;
 		String oLeido=null;
 		Object oConstruido=null;
 		try {
-			fr=new FileReader(path);//abrimos los flujos instanciando los objetos 
+			file=new File(path);
+			fr=new FileReader(file);//abrimos los flujos instanciando los objetos 
 			br=new BufferedReader(fr);
 			while((oLeido=br.readLine())!=null){
 				if(oLeido.split(",")[0].equals(p.getClass().getSimpleName()) && !existe){//comprobamos si dicho objeto es de dicha clase
@@ -417,7 +432,10 @@ public class GestoraFicheros{
 				}
 			}
 		} catch (FileNotFoundException e) {
-			throw new ExcepcionGestionFichero();
+			try {
+				file.createNewFile();
+			} catch (IOException e1) {
+			}
 		} catch (IOException e){
 			throw new ExcepcionLectura();
 		}finally{//cerramos los flujos comprobando antes si no son nulos
@@ -564,7 +582,7 @@ public class GestoraFicheros{
 	}
 	/**
 	 * @author jjmza
-	 * Cabecera:public static boolean actualizarObjetoFicheroTextoMovimiento(Persona persona,String path)
+	 * Cabecera:public static boolean actualizarObjetoFicheroTexto(Persona persona,String path)
 	 * Proposito: Elimina un objeto en un fichero de texto  
 	 * @param:Persona p,String path
 	 * @return: boolean actualizado
@@ -575,7 +593,7 @@ public class GestoraFicheros{
 	 * @throws ExcepcionEscritura 
 	 * @throws ExcepcionGestionFichero 
 	 * */
-	public static boolean actualizarObjetoFicheroTextoMovimiento(Persona persona,String path) throws ExcepcionGestionFichero, ExcepcionEscritura, ExcepcionLectura{
+	public static boolean actualizarObjetoFicheroTexto(Persona persona,String path) throws ExcepcionGestionFichero, ExcepcionEscritura, ExcepcionLectura{
 		FileReader fr=null;//declaramos los objetos de las clases necesarias para poder cerrar los flujos en el finally
 		BufferedReader br=null;
 		String lectura="";
@@ -583,14 +601,14 @@ public class GestoraFicheros{
 		Persona personaAux=null;
 		File fileO=null;
 		File fileF=null;
-		boolean eliminado=false;
+		boolean actualizado=false;
 		try {
 			fileO=new File(path);
 			fr=new FileReader(fileO);
 			br=new BufferedReader(fr);
 			fileF=new File(pathAuxiliar);
 			while((lectura=br.readLine())!=null){
-				if(lectura.getClass().getSimpleName().equals("Persona")){
+				if(lectura.split(",")[0].equals("Persona")){
 					 personaAux=construirObjeto(lectura);
 					if(!personaAux.equals(persona)){
 						anhiadirObjetoAFicheroTexto(personaAux, pathAuxiliar,false);
@@ -598,8 +616,8 @@ public class GestoraFicheros{
 						anhiadirObjetoAFicheroTexto(persona, pathAuxiliar,false);
 					}
 				}
-				eliminado=true;//si no ha saltado ninguna excepción y por lo tanto el flujo del programa no se ha visto interrumpido, el objeto se habrá actualizado adecuadamente.
 			}
+			actualizado=true;//si no ha saltado ninguna excepción y por lo tanto el flujo del programa no se ha visto interrumpido, el objeto se habrá actualizado adecuadamente.
 		}catch(IOException e){
 			throw new ExcepcionLectura();
 		}finally{//cerramos los flujos preguntando previamente si son o no nulos
@@ -620,7 +638,7 @@ public class GestoraFicheros{
 				fileO.delete();
 				fileF.renameTo(fileO);
 		}
-		return eliminado;
+		return actualizado;
 	}
 	
 	
